@@ -1,0 +1,59 @@
+- hosts: web
+  vars_files: 
+    - name_var.yml
+  tasks:
+  - name: "Copy jdk software"
+    copy:
+      src: "{{ jdkpath }}"
+      dest: "/root"
+   
+  - name: "Install jdk"
+    command: "rpm -ivh {{ jdkpath }} "
+    ignore_errors: yes
+  
+  - name: "Copy hadoop software"
+    copy:
+      src: "{{ hadoop_path }}"
+      dest: "/root"
+
+  - name: "Checking hadoop s/w"
+    shell: "rpm -q hadoop" 
+    register: check_hadoop
+    ignore_errors: yes
+
+  - name: "Install hadoop"
+    command: "rpm -ivh {{ hadoop_install }} --force"
+    ignore_errors: yes
+    when: (check_hadoop.rc != 0)
+
+  - name: "Copy hdfs-site.xml file"
+    copy:
+      src: "{{ hdfs }}"
+      dest: "/etc/hadoop"
+
+  - name: "Copy core-site.xml file"
+    copy:
+      src: "{{ core }}"
+      dest: "/etc/hadoop"
+
+  - name: "Delete directory if exist"
+    shell: "{{ delete_n }}"
+    ignore_errors: yes
+
+  - name: "Creating Directory"
+    file:
+      state: directory  
+      path: "{{ directory_n }}"
+
+  - name: "Format namenode"
+    shell: "echo Y | hadoop namenode -format"
+
+  - name: "Stop Namenode"
+    command: "{{ stop_n }}"
+    ignore_errors: yes
+   
+  - name: "Start Namenode"
+    command: "{{ start_n }}"
+
+
+
